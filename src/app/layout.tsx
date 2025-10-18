@@ -1,3 +1,4 @@
+import { Toaster } from "@/components/ui/sonner";
 import AuthProvider from "@/context/AuthProvider";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -28,6 +29,7 @@ export default function RootLayout({
       <AuthProvider>
         <body className={geistSans.className}>
           {children}
+          <Toaster />
         </body>
       </AuthProvider>
     </html>

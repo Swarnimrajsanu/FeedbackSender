@@ -1,10 +1,8 @@
-import {NextAuthOptions} from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
-import bcrypt from "bcryptjs";
 import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/model/user.model";
-import { use } from "react";
-import { email } from "zod";
+import bcrypt from "bcryptjs";
+import { NextAuthOptions } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
 
 
 export const authOptions: NextAuthOptions = {

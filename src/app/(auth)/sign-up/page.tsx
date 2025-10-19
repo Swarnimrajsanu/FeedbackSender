@@ -24,7 +24,7 @@ const page = () => {
   const router = useRouter();
 
   //zod implementation
-  const form = useForm({
+  const form = useForm<z.infer<typeof signUpSchema>>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
       username: "",
@@ -72,13 +72,12 @@ const page = () => {
 
   return (
     <div>
-      <div className="flex justify-center items-center min-h-screen bg-gray-100"></div>
+      <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
         <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-6">
             Join Anonymous Feedback Sender
         </h1>
         <p className="mb-4">Sign up to use and send anynomous feedback</p>
-      </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FormField
@@ -152,6 +151,8 @@ const page = () => {
               Sign In
             </Link>
           </p>
+        </div>
+        </div>
         </div>
     </div>
   )

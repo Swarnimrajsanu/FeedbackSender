@@ -8,7 +8,7 @@ const Navbar = () => {
     const { data: session } = useSession();
     const user: User = session?.user as User;
     return (
-        <nav className='p-4 bg-gray-800 text-white flex justify-between'>
+        <nav className='p-4 bg-green-800 text-white flex justify-between'>
             <div className='container mx-auto flex justify-between items-center'>
                 <a className='text-xl font-bold mb-4 md:mb-0' href="#">Anynomous Feedback</a>
                 {

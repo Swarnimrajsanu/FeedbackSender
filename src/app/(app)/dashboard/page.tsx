@@ -8,7 +8,7 @@ import { useCallback, useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
-import MessageCard from "@/components/MessageCard"
+import { MessageCard } from "@/components/MessageCard"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"

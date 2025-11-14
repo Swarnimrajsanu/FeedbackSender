@@ -1,55 +1,56 @@
-import dbConnect from "@/lib/dbConnect";
-import UserModel from "@/model/user.model";
+import dbConnect from '@/lib/dbConnect';
+import UserModel from '@/model/user.model';
 
 export async function POST(request: Request) {
+  // Connect to the database
   await dbConnect();
 
   try {
     const { username, code } = await request.json();
     const decodedUsername = decodeURIComponent(username);
-
-    // 1. Check if user exists
     const user = await UserModel.findOne({ username: decodedUsername });
+
     if (!user) {
       return Response.json(
-        { message: "User not found", success: false },
+        { success: false, message: 'User not found' },
         { status: 404 }
       );
     }
 
-    // 2. Validate code and expiry
+    // Check if the code is correct and not expired
     const isCodeValid = user.verifyCode === code;
-    const isCodeNotExpired =
-      user.verifyCodeExpiry && user.verifyCodeExpiry > new Date();
+    const isCodeNotExpired = new Date(user.verifyCodeExpiry) > new Date();
 
-    // 3. Correct condition — both must be true
     if (isCodeValid && isCodeNotExpired) {
+      // Update the user's verification status
       user.isVerified = true;
       await user.save();
 
       return Response.json(
-        { message: "Account verified successfully!", success: true },
+        { success: true, message: 'Account verified successfully' },
         { status: 200 }
       );
-    }
-
-    // 4. Handle expiry
-    if (!isCodeNotExpired) {
+    } else if (!isCodeNotExpired) {
+      // Code has expired
       return Response.json(
-        { message: "Verification code has expired.", success: false },
+        {
+          success: false,
+          message:
+            'Verification code has expired. Please sign up again to get a new code.',
+        },
+        { status: 400 }
+      );
+    } else {
+      // Code is incorrect
+      return Response.json(
+        { success: false, message: 'Incorrect verification code' },
         { status: 400 }
       );
     }
-
-    // 5. Handle incorrect code
-    return Response.json(
-      { message: "Incorrect verification code.", success: false },
-      { status: 400 }
-    );
   } catch (error) {
-    console.error("Error verifying user:", error);
+    console.error('Error verifying user:', error);
     return Response.json(
-      { message: "Internal server error", success: false },
+      { success: false, message: 'Error verifying user' },
       { status: 500 }
     );
   }

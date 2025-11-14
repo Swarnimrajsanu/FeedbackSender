@@ -5,7 +5,12 @@ export interface Message extends Document {
     content : string;
     createdAt : Date;
 }
-
+export interface Message {
+  _id: string;
+  content: string;
+  senderName?: string;
+  createdAt: Date;
+}
 const MessageSchema: Schema<Message> = new Schema({
     content:{
         type: String,

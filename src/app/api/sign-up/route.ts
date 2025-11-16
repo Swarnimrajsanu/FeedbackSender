@@ -10,7 +10,7 @@ export async function POST(request: Request) {
         let body;
         try {
             body = await request.json();
-        } catch (parseError) {
+        } catch {
             return Response.json({
                 success: false,
                 message: 'Invalid JSON in request body',

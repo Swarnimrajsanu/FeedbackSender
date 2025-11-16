@@ -14,7 +14,7 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
 
-      async authorize(credentials: any): Promise<any> {
+      async authorize(credentials: { email?: string; password?: string } | undefined) {
         await dbConnect();
 
         if (!credentials?.email || !credentials?.password) {
@@ -38,15 +38,18 @@ export const authOptions: NextAuthOptions = {
           }
 
           // Return user object for JWT creation
+          const userId = user._id?.toString() || '';
           return {
-            _id: user._id,
+            id: userId,
+            _id: userId,
             username: user.username,
             email: user.email,
             isVerified: user.isVerified,
             isAcceptingMessages: user.isAcceptingMessages,
           };
-        } catch (error: any) {
-          throw new Error(error.message || "Internal Server Error");
+        } catch (error: unknown) {
+          const err = error as { message?: string };
+          throw new Error(err.message || "Internal Server Error");
         }
       },
     }),

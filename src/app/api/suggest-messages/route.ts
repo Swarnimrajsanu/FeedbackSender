@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
-export async function POST(req: Request) {
+export async function POST() {
   try {
     if (!process.env.GEMINI_API_KEY) {
       return NextResponse.json(
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     ];
     
     let result;
-    let lastError;
+    let lastError: unknown;
     
     // Try each model until one works
     for (const modelName of modelNames) {
@@ -35,37 +35,40 @@ export async function POST(req: Request) {
         result = await model.generateContent(prompt);
         console.log(`Successfully used model: ${modelName}`);
         break;
-      } catch (modelError: any) {
-        console.log(`Model ${modelName} failed:`, modelError?.message);
+      } catch (modelError: unknown) {
+        const error = modelError as { message?: string };
+        console.log(`Model ${modelName} failed:`, error?.message);
         lastError = modelError;
         continue;
       }
     }
     
     if (!result) {
-      throw new Error(`All models failed. Last error: ${lastError?.message || 'Unknown error'}. Available models to try: ${modelNames.join(', ')}`);
+      const lastErr = lastError as { message?: string } | undefined;
+      throw new Error(`All models failed. Last error: ${lastErr?.message || 'Unknown error'}. Available models to try: ${modelNames.join(', ')}`);
     }
     
     const response = await result.response;
     const text = response.text();
 
     return NextResponse.json({ text });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = error as { message?: string; status?: number; statusText?: string; errorDetails?: unknown };
     console.error('Error generating suggestions with Gemini:', error);
     console.error('Error details:', {
-      message: error?.message,
-      status: error?.status,
-      statusText: error?.statusText,
-      errorDetails: error?.errorDetails,
+      message: err?.message,
+      status: err?.status,
+      statusText: err?.statusText,
+      errorDetails: err?.errorDetails,
     });
     
-    const errorMessage = error?.message || 'Failed to generate suggestions';
-    const errorStatus = error?.status || 500;
+    const errorMessage = err?.message || 'Failed to generate suggestions';
+    const errorStatus = err?.status || 500;
     
     return NextResponse.json(
       { 
         error: errorMessage,
-        details: error?.errorDetails || error?.statusText 
+        details: err?.errorDetails || err?.statusText 
       },
       { status: errorStatus }
     );

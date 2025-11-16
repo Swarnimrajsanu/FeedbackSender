@@ -67,16 +67,19 @@ export default function SignUpForm() {
   const onSubmit = async (data: z.infer<typeof signUpSchema>) => {
     setIsSubmitting(true);
     try {
+      console.log('Submitting sign-up data:', data);
       const response = await axios.post<ApiResponse>('/api/sign-up', data);
 
       toast.success(response.data.message || 'Sign up successful! 🎉');
 
-      router.replace(`/verify/${data.username}`);
+      router.replace('/sign-in');
     } catch (error) {
       console.error('Error during sign-up:', error);
       const axiosError = error as AxiosError<ApiResponse>;
+      console.error('Error response:', axiosError.response?.data);
+      console.error('Error status:', axiosError.response?.status);
       const errorMessage =
-        axiosError.response?.data.message ||
+        axiosError.response?.data?.message ||
         'There was a problem with your sign-up. Please try again.';
 
       toast.error(errorMessage);
@@ -137,9 +140,6 @@ export default function SignUpForm() {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <Input {...field} name="email" />
-                  <p className="text-gray-400 text-sm">
-                    We will send you a verification code
-                  </p>
                   <FormMessage />
                 </FormItem>
               )}

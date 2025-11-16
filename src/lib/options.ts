@@ -31,10 +31,6 @@ export const authOptions: NextAuthOptions = {
             throw new Error("No user found with the given email or username.");
           }
 
-          if (!user.isVerified) {
-            throw new Error("Email not verified. Please verify your email to login.");
-          }
-
           // Compare password
           const isPasswordCorrect = await bcrypt.compare(credentials.password, user.password);
           if (!isPasswordCorrect) {

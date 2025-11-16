@@ -3,7 +3,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { useCompletion } from '@ai-sdk/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import axios, { AxiosError } from 'axios';
 import { Loader2 } from 'lucide-react';
@@ -39,15 +38,9 @@ export default function SendMessage() {
   const params = useParams<{ username: string }>();
   const username = params.username;
 
-  const {
-    complete,
-    completion,
-    isLoading: isSuggestLoading,
-    error,
-  } = useCompletion({
-    api: '/api/suggest-messages',
-    initialCompletion: initialMessageString,
-  });
+  const [suggestedMessages, setSuggestedMessages] = useState<string>(initialMessageString);
+  const [isSuggestLoading, setIsSuggestLoading] = useState(false);
+  const [suggestError, setSuggestError] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof MessageSchema>>({
     resolver: zodResolver(MessageSchema),
@@ -80,11 +73,23 @@ export default function SendMessage() {
   };
 
   const fetchSuggestedMessages = async () => {
+    setIsSuggestLoading(true);
+    setSuggestError(null);
     try {
-      complete('');
+      const response = await axios.post<{ text: string; error?: string; details?: string }>('/api/suggest-messages', {});
+      if (response.data.error) {
+        setSuggestError(response.data.error + (response.data.details ? `: ${response.data.details}` : ''));
+      } else {
+        setSuggestedMessages(response.data.text);
+      }
     } catch (error) {
       console.error('Error fetching messages:', error);
-      // Handle error appropriately
+      const axiosError = error as AxiosError<{ error?: string; details?: string }>;
+      const errorMsg = axiosError.response?.data?.error || 'Failed to fetch suggested messages';
+      const details = axiosError.response?.data?.details;
+      setSuggestError(details ? `${errorMsg}: ${details}` : errorMsg);
+    } finally {
+      setIsSuggestLoading(false);
     }
   };
 
@@ -143,10 +148,15 @@ export default function SendMessage() {
             <h3 className="text-xl font-semibold">Messages</h3>
           </CardHeader>
           <CardContent className="flex flex-col space-y-4">
-            {error ? (
-              <p className="text-red-500">{error.message}</p>
+            {isSuggestLoading ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                <span>Generating suggestions...</span>
+              </div>
+            ) : suggestError ? (
+              <p className="text-red-500">{suggestError}</p>
             ) : (
-              parseStringMessages(completion).map((message, index) => (
+              parseStringMessages(suggestedMessages).map((message, index) => (
                 <Button
                   key={index}
                   variant="outline"

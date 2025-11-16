@@ -1,7 +1,7 @@
 import dbConnect from '@/lib/dbConnect';
 import UserModel from '@/model/user.model';
 import bcrypt from 'bcryptjs';
-import { NextAuthOptions, Session } from 'next-auth';
+import { NextAuthOptions } from 'next-auth';
 import { JWT } from 'next-auth/jwt';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
@@ -45,9 +45,6 @@ export const authOptions: NextAuthOptions = {
           });
           if (!user) {
             throw new Error('No user found with this email');
-          }
-          if (!user.isVerified) {
-            throw new Error('Please verify your account before logging in');
           }
           const isPasswordCorrect = await bcrypt.compare(
             credentials.password,

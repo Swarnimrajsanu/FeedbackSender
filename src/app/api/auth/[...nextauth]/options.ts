@@ -2,7 +2,6 @@ import dbConnect from '@/lib/dbConnect';
 import UserModel from '@/model/user.model';
 import bcrypt from 'bcryptjs';
 import { NextAuthOptions } from 'next-auth';
-import { JWT } from 'next-auth/jwt';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
 declare module 'next-auth' {
@@ -34,9 +33,13 @@ export const authOptions: NextAuthOptions = {
         email: { label: 'Email', type: 'text' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials: any): Promise<any> {
+      async authorize(credentials: { identifier?: string; password?: string } | undefined) {
         await dbConnect();
         try {
+          if (!credentials?.identifier || !credentials?.password) {
+            throw new Error('Email/username and password are required');
+          }
+
           const user = await UserModel.findOne({
             $or: [
               { email: credentials.identifier },
@@ -51,12 +54,21 @@ export const authOptions: NextAuthOptions = {
             user.password
           );
           if (isPasswordCorrect) {
-            return user;
+            const userId = user._id?.toString() || '';
+            return {
+              id: userId,
+              _id: userId,
+              username: user.username,
+              email: user.email,
+              isVerified: user.isVerified,
+              isAcceptingMessages: user.isAcceptingMessages,
+            };
           } else {
             throw new Error('Incorrect password');
           }
-        } catch (err: any) {
-          throw new Error(err);
+        } catch (err: unknown) {
+          const error = err as Error | { message?: string };
+          throw new Error(error instanceof Error ? error.message : String(error));
         }
       },
     }),
